@@ -1,3 +1,0 @@
-All models share same material.
-2 example scenes.
-Post-processing effects are not included in this package.

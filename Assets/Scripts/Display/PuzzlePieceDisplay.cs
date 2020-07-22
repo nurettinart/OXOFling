@@ -111,16 +111,16 @@ public class PuzzlePieceDisplay : MonoBehaviour
     private void Start()
     {
         characterNumber = UnityEngine.Random.Range(0, AudioDisplay.instance.GrumbleMusicList.Count);
-        _animator = GetComponent<Animator>();
-        _animator.SetTrigger("Idle");
-        _animator.speed = UnityEngine.Random.Range(0.8f, 1.2f);
+        //_animator = transform.GetChild(0).GetComponent<Animator>();
+        //_animator.SetTrigger("Idle");
+        //_animator.speed = UnityEngine.Random.Range(0.8f, 1.2f);
         //StartCoroutine(GrumbleSound());
         PuzzleDisplay.instance.currentPuzzlePieceList.Add(puzzlePiece);
     }
 
     private void OnEnable()
     {
-        _animator = GetComponent<Animator>();
+        _animator = transform.GetChild(0).GetComponent<Animator>();
         _animator.SetTrigger("Idle");
         _animator.speed = UnityEngine.Random.Range(0.8f, 1.2f);
 
@@ -154,11 +154,6 @@ public class PuzzlePieceDisplay : MonoBehaviour
         if (GameManager.instance.SelectedObject != null)
             if (GameManager.instance.SelectedObject == this.gameObject)
             {
-                if (!GetComponent<AudioSource>().isPlaying)
-                {
-                    GrumbleSound();
-                }
-
                 if (Input.GetMouseButtonUp(0))
                 {
                     GameSceneDisplay.instance.InfoText.text = "";
@@ -170,8 +165,9 @@ public class PuzzlePieceDisplay : MonoBehaviour
                         SlideSound();
                         GameSceneDisplay.instance.InfoText.text = " You slide right ! \n";
                         Speed = new Vector3(GameManager.instance.PuzzleMovementSpeed, 0f, 0f);
-                        PuzzleDisplay.instance.myPuzzle.MyStepList.LastOrDefault().movedObjectPos = transform.position;
 
+                        Vector3 movObjPos = GameManager.instance.SelectedObject.transform.position;
+                        PuzzleDisplay.instance.myPuzzle.MyStepList.LastOrDefault().movedObjectPos = movObjPos;
                         PuzzleDisplay.instance.myPuzzle.MyStepList.LastOrDefault().targetObjectPos = transform.position + Vector3.right;
 
                         if (PuzzleDisplay.instance.currentPuzzlePieceList.Where(x => x.GameObject.transform.position.x - 1 == transform.position.x && x.GameObject.transform.position.z == transform.position.z).Count() > 0 || ObstacleDisplay.instance.currentObstaclePieceList.Where(x => x.GameObject.transform.position.x - 1 == transform.position.x && x.GameObject.transform.position.z == transform.position.z).Count() > 0)
@@ -199,8 +195,8 @@ public class PuzzlePieceDisplay : MonoBehaviour
                         SlideSound();
                         GameSceneDisplay.instance.InfoText.text = " You slide left ! \n";
                         Speed = new Vector3(-GameManager.instance.PuzzleMovementSpeed, 0f, 0f);
-                        PuzzleDisplay.instance.myPuzzle.MyStepList.LastOrDefault().movedObjectPos = GameManager.instance.SelectedObject.transform.position;
-
+                        Vector3 movObjPos = GameManager.instance.SelectedObject.transform.position;
+                        PuzzleDisplay.instance.myPuzzle.MyStepList.LastOrDefault().movedObjectPos = movObjPos;
                         PuzzleDisplay.instance.myPuzzle.MyStepList.LastOrDefault().targetObjectPos = transform.position + Vector3.left;
 
                         if (PuzzleDisplay.instance.currentPuzzlePieceList.Where(x => x.GameObject.transform.position.x == transform.position.x - 1 && x.GameObject.transform.position.z == transform.position.z).Count() > 0 || ObstacleDisplay.instance.currentObstaclePieceList.Where(x => x.GameObject.transform.position.x == transform.position.x - 1 && x.GameObject.transform.position.z == transform.position.z).Count() > 0)
@@ -227,8 +223,8 @@ public class PuzzlePieceDisplay : MonoBehaviour
                         SlideSound();
                         GameSceneDisplay.instance.InfoText.text = " You slide up ! \n";
                         Speed = new Vector3(0f, 0f, GameManager.instance.PuzzleMovementSpeed);
-                        PuzzleDisplay.instance.myPuzzle.MyStepList.LastOrDefault().movedObjectPos = GameManager.instance.SelectedObject.transform.position;
-
+                        Vector3 movObjPos = GameManager.instance.SelectedObject.transform.position;
+                        PuzzleDisplay.instance.myPuzzle.MyStepList.LastOrDefault().movedObjectPos = movObjPos;
                         PuzzleDisplay.instance.myPuzzle.MyStepList.LastOrDefault().targetObjectPos = transform.position + Vector3.forward;
 
                         if (PuzzleDisplay.instance.currentPuzzlePieceList.Where(x => x.GameObject.transform.position.z - 1 == transform.position.z && x.GameObject
@@ -258,8 +254,8 @@ public class PuzzlePieceDisplay : MonoBehaviour
                         SlideSound();
                         GameSceneDisplay.instance.InfoText.text = " You slide down ! \n";
                         Speed = new Vector3(0f, 0f, -GameManager.instance.PuzzleMovementSpeed);
-                        PuzzleDisplay.instance.myPuzzle.MyStepList.LastOrDefault().movedObjectPos = GameManager.instance.SelectedObject.transform.position;
-
+                        Vector3 movObjPos = GameManager.instance.SelectedObject.transform.position;
+                        PuzzleDisplay.instance.myPuzzle.MyStepList.LastOrDefault().movedObjectPos = movObjPos;
                         PuzzleDisplay.instance.myPuzzle.MyStepList.LastOrDefault().targetObjectPos = transform.position + Vector3.back;
 
                         if (PuzzleDisplay.instance.currentPuzzlePieceList.Where(x => x.GameObject.transform.position.z == transform.position.z - 1 && x.GameObject.transform.position.x == transform.position.x).Count() > 0 || ObstacleDisplay.instance.currentObstaclePieceList.Where(x => x.GameObject.transform.position.z == transform.position.z - 1 && x.GameObject.transform.position.x == transform.position.x).Count() > 0)
@@ -302,24 +298,33 @@ public class PuzzlePieceDisplay : MonoBehaviour
         //GameSceneDisplay.instance.WindParticlePrefab.transform.Rotate(0f, 180f, 0f);
     }
 
+    Ray hitRay;
+    RaycastHit hitRayHit;
+    bool isFirstRayHit;
     public IEnumerator Movement(Vector3 spd, int direction)
     {
         IsMoving = true;
-        //GameSceneDisplay.instance.LockPanel.SetActive(true);
-        //GameSceneDisplay.instance.WindParticlePrefab.SetActive(true);
-        //GameSceneDisplay.instance.WindParticlePrefab.transform.position = transform.position;
-        //GameSceneDisplay.instance.WindParticlePrefab.transform.rotation = transform.rotation;
-        //GameSceneDisplay.instance.WindParticlePrefab.transform.Rotate(0f, 180f, 0f);
+        isFirstRayHit = false;
+        GameSceneDisplay.instance.LockPanel.SetActive(true);
 
-        _animator.SetTrigger("Hit");
+        //_animator.SetTrigger("Hit");
 
         currentDirection = direction;
         while (IsMoving)
         {
             transform.Translate(Vector3.Lerp(Vector3.zero, spd, 0.2f), Space.World);
-            //transform.Rotate(0f, UnityEngine.Random.Range(5, 10), UnityEngine.Random.Range(5, 10));
 
-            if (transform.position.x < 0 || transform.position.z < 0 || transform.position.x > 10 || transform.position.z > 10)
+            if (Physics.Raycast(transform.position, spd, out hitRayHit, 5f))
+            {
+                if (hitRayHit.collider.tag == "PuzzlePiece" && !isFirstRayHit)
+                {
+                    _animator.SetTrigger("Hit");
+                    isFirstRayHit = true;
+                    Debug.Log(hitRayHit.collider.name);
+                }
+            }
+
+            if (transform.position.x < 0 || transform.position.z < 0 || transform.position.x > 20 || transform.position.z > 20)
             {
 
                 transform.Rotate(UnityEngine.Random.Range(5, 10), UnityEngine.Random.Range(5, 10), UnityEngine.Random.Range(5, 10));
@@ -346,7 +351,7 @@ public class PuzzlePieceDisplay : MonoBehaviour
                 {
                     int i = UnityEngine.Random.Range(0, AudioDisplay.instance.FinishMusicList.Count);
                     GameManager.instance.GetComponent<AudioSource>().PlayOneShot(AudioDisplay.instance.FinishMusicList[i], 0.4f);
-                    PuzzleDisplay.instance.currentPuzzlePieceList.FirstOrDefault().GameObject.GetComponent<Animator>().SetInteger("animation", 2);
+                    PuzzleDisplay.instance.currentPuzzlePieceList.FirstOrDefault().GameObject.transform.GetChild(0).GetComponent<Animator>().SetTrigger("Happy");
 
                     GameSceneDisplay.instance.FinishPopUpRect.SetActive(true);
                     GameObject.Find("GoToNextLevel-Button").GetComponent<Button>().onClick.AddListener(GameManager.instance.GoToNextLevelButtonClick);
@@ -356,13 +361,10 @@ public class PuzzlePieceDisplay : MonoBehaviour
 
                     GameManager.instance.isGameRunning = false;
                 }
-
             }
             GameSceneDisplay.instance.LockPanel.SetActive(false);
             yield return new WaitForEndOfFrame();
         }
-
-        //gameObject.transform.GetChild(2).gameObject.SetActive(false);
 
         if (triggedObject.tag == "PuzzlePiece")
         {
@@ -374,13 +376,27 @@ public class PuzzlePieceDisplay : MonoBehaviour
 
             transform.position = new Vector3(Mathf.Round(transform.position.x), transform.position.y, Mathf.Round(transform.position.z));
             float sety = transform.position.y;
-            //transform.rotation = rotation;
+            transform.GetChild(0).localPosition = Vector3.zero;
+            transform.GetChild(0).rotation = new Quaternion(0f, 0f, 0f, 0f);
         }
         else if (triggedObject.tag == "Obstacle")
         {
             _animator.SetTrigger("Idle");
+
+            //PuzzlePieceList ppl = new PuzzlePieceList();
+            //ppl.puzzlePieceList = new List<PuzzlePiece>();
+            //foreach (GameObject item in GameObject.FindGameObjectsWithTag("PuzzlePiece"))
+            //{
+            //    PuzzlePiece pp = new PuzzlePiece();
+            //    pp.GameObject = item;
+            //    pp.position = new Vector3((int)item.transform.position.x, item.transform.position.y, (int)item.transform.position.z);
+            //    ppl.puzzlePieceList.Add(pp);
+            //}
+            //PuzzleDisplay.instance.myPuzzle.MyStepList.Add(ppl);
+
             transform.position = new Vector3(Mathf.Round(transform.position.x), transform.position.y, Mathf.Round(transform.position.z));
-            //transform.rotation = rotation;
+            transform.GetChild(0).localPosition = Vector3.zero;
+            transform.GetChild(0).rotation = new Quaternion(0f, 0f, 0f, 0f);
         }
     }
 
@@ -423,7 +439,6 @@ public class PuzzlePieceDisplay : MonoBehaviour
         //_animator.SetTrigger("Idle");
         transform.position = new Vector3(Mathf.Round(transform.position.x), Mathf.Round(transform.position.y), Mathf.Round(transform.position.z));
     }
-
 
     void WrongSideAnimato(int direction)
     {

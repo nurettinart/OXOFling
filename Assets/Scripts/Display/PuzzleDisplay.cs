@@ -258,6 +258,7 @@ public class PuzzleDisplay : MonoBehaviour
             item.GameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
             item.GameObject.GetComponent<Rigidbody>().useGravity = false;
             item.GameObject.transform.position = item.position;
+            item.GameObject.transform.GetChild(0).localPosition = Vector3.zero;
             item.GameObject.transform.rotation = Quaternion.identity;
 
             item.GameObject.tag = "PuzzlePiece";
@@ -327,6 +328,9 @@ public class PuzzleDisplay : MonoBehaviour
                 {
                     if (suggestableSolution.MyStepList[solutionStep + 1].puzzlePieceList.Where(x => (x.position.x == pp.position.x && x.position.z == pp.position.z)).Count() == 0)
                     {
+                        Debug.Log(solutionStep);
+                        Debug.Log("hi" + suggestableSolution.MyStepList[solutionStep].movedObjectPos);
+
                         suggestedGO = suggestableSolution.MyStepList[solutionStep].puzzlePieceList.Where(
                             x => x.GameObject.transform.position.x == suggestableSolution.MyStepList[solutionStep].movedObjectPos.x &&
                             x.GameObject.transform.position.z == suggestableSolution.MyStepList[solutionStep].movedObjectPos.z)
@@ -336,7 +340,6 @@ public class PuzzleDisplay : MonoBehaviour
                         // x => x.GameObject.transform.position.x == suggestableSolution.MyStepList[solutionStep].targetObjectPos.x &&
                         // x.GameObject.transform.position.z == suggestableSolution.MyStepList[solutionStep].targetObjectPos.z)
                         // .FirstOrDefault().GameObject;
-
                     }
                     else
                     {
@@ -345,7 +348,7 @@ public class PuzzleDisplay : MonoBehaviour
                 }
                 Debug.Log(suggestedGO.name);
                 suggestedGO.transform.LookAt(suggestableSolution.MyStepList[solutionStep].targetObjectPos);
-                suggestedGO.GetComponent<PuzzlePieceDisplay>()._animator.SetInteger("animation", 6);
+                suggestedGO.GetComponent<PuzzlePieceDisplay>()._animator.SetTrigger("Hit");
                 yield break;
             }
         }
